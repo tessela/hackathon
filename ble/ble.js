@@ -17,12 +17,34 @@ ble.on('ready', function (err) {
   console.log('Scanning...');
   ble.startScanning({
     allowDuplicates: false,
-    serviceUUIDs: ['1111']
+    serviceUUIDs: ['1111']  // @TODO only scan for trusted encrypted set of UUIDs
   }, function (err){
     if (err) { console.log('Scan error',error); }
   });
 });
 
-ble.once('discover', function(peripheral) {
-  console.log("Discovered peripheral!", peripheral.toString());
+var locked = true;
+
+ble.on('discover', function(peripheral) {
+  // console.log('Discovered peripheral!', peripheral.toString());
+  // console.log(peripheral.rssi);
+  var rssi = peripheral.rssi;
+  if (rssi > -50 && locked === true) {
+    locked = false;
+    console.log('Car unlocked!');
+  } else if (rssi < -70 && locked === false) {
+    locked = true;
+    console.log('Car locked!');
+  }
+  ble.stopScanning(function (err) {
+    // console.log('Stopped scanning');
+    if (err) { console.log('Scan stop error', err); }
+    ble.startScanning({
+      allowDuplicates: false,
+      serviceUUIDs: ['1111']
+    }, function (err){
+      // console.log('Started scanning');
+      if (err) { console.log('Scan error',error); }
+    });
+  });
 });
