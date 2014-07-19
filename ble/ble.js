@@ -24,10 +24,19 @@ ble.on('ready', function (err) {
 });
 
 var locked = true;
+var discovered = false;
+
+setInterval(function () {
+  if (!discovered && !locked) {
+    locked = true;
+    console.log('Car locked!');
+  }
+}, 1000);
 
 ble.on('discover', function(peripheral) {
   // console.log('Discovered peripheral!', peripheral.toString());
   // console.log(peripheral.rssi);
+  discovered = true;
   var rssi = peripheral.rssi;
   if (rssi > -50 && locked === true) {
     locked = false;
@@ -44,6 +53,7 @@ ble.on('discover', function(peripheral) {
       serviceUUIDs: ['1111']
     }, function (err){
       // console.log('Started scanning');
+      discovered = false;
       if (err) { console.log('Scan error',error); }
     });
   });
