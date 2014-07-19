@@ -9,8 +9,10 @@ you have some BLE peripherals around.
 
 var tessel = require('tessel');
 var blelib = require('ble-ble113a');
+var infraredlib = require('ir-attx4');
 
 var ble = blelib.use(tessel.port['A']);
+var infrared = infraredlib.use(tessel.port['B']);
 
 ble.on('ready', function (err) {
   if (err) { console.log('BLE error', err); }
@@ -24,26 +26,19 @@ ble.on('ready', function (err) {
 });
 
 var locked = true;
-var discovered = false;
-
-setInterval(function () {
-  if (!discovered && !locked) {
-    locked = true;
-    console.log('Car locked!');
-  }
-}, 1000);
 
 ble.on('discover', function(peripheral) {
-  // console.log('Discovered peripheral!', peripheral.toString());
-  // console.log(peripheral.rssi);
-  discovered = true;
   var rssi = peripheral.rssi;
+  // console.log('Discovered peripheral!', peripheral.toString());
+  // console.log(rssi);
   if (rssi > -50 && locked === true) {
     locked = false;
     console.log('Car unlocked!');
+    sendIrSignal();
   } else if (rssi < -70 && locked === false) {
     locked = true;
     console.log('Car locked!');
+    sendIrSignal();
   }
   ble.stopScanning(function (err) {
     // console.log('Stopped scanning');
@@ -53,8 +48,27 @@ ble.on('discover', function(peripheral) {
       serviceUUIDs: ['1111']
     }, function (err){
       // console.log('Started scanning');
-      discovered = false;
       if (err) { console.log('Scan error',error); }
-    });
+    })
   });
 });
+
+// When we're connected
+function sendIrSignal() {
+  if (!err) {
+    console.log("Connected to IR!");
+    // Start sending a signal every three seconds
+    // Make a buffer of on/off durations (each duration is 16 bits)
+    var powerBuffer = new Buffer([0, 178, 255, 168, 0, 12, 255, 246, 0, 13, 255, 225, 0, 13, 255, 224, 0, 12, 255, 246, 0, 12, 255, 246, 0, 13, 255, 247, 0, 13, 255, 247, 0, 13, 255, 224, 0, 12, 255, 224, 0, 13, 255, 247, 0, 13, 255, 224, 0, 12, 255, 246, 0, 12, 255, 246, 0, 12, 255, 246, 0, 12, 255, 246, 0, 13, 255, 247, 0, 13, 255, 224, 0, 12, 255, 224, 0, 13, 255, 225, 0, 13, 255, 224, 0, 12, 255, 246, 0, 12, 255, 246, 0, 13, 255, 247, 0, 13, 255, 247, 0, 13, 255, 246, 0, 12, 255, 246, 0, 12, 255, 246, 0, 12, 255, 246, 0, 12, 255, 224, 0, 13, 255, 224, 0, 12, 255, 224, 0, 12, 255, 224, 0, 12]);
+    // Send the signal at 38 kHz
+    infrared.sendRawSignal(34, powerBuffer, function(err) {
+      if (err) {
+        console.log("Unable to send signal: ", err);
+      } else {
+        console.log("Signal sent!");
+      }
+    });
+  } else {
+    console.log(err);
+  }
+}
