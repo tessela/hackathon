@@ -1,0 +1,8 @@
+{
+  "name": "tessela",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "ble-ble113a": "*"
+  }
+}
