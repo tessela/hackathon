@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+  <head>
+  </head>
+  <body>
+    <script src="jquery.min.js" ></script>
+    <script>
+      $(document).ready(function () {
+        $('#unlock').hide();
+        $('#lock').hide();
+        setInterval(function () {
+          $.get('http://127.0.0.1:5000/lockedState', function (response) {
+            console.log(response);
+            if (response) {
+              $('#unlock').hide();
+              $('#lock').show();
+            } else {
+              $('#unlock').show();
+              $('#lock').hide();
+            }
+          });
+        }, 1000);
+      });
+    </script>
+    <div id='lock'>
+      <h1>Car is Locked!!!</h1>
+    </div>
+    <div id='unlock'>
+      <h1>Car is Unlocked!!!</h1>
+    </div>
+  </body>
+</html>
