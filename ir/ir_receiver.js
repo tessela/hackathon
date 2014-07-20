@@ -10,21 +10,39 @@ infrared data.
 *********************************************/
 
 var tessel = require('tessel');
+var http = require('http');
 var infraredlib = require('ir-attx4');
 var infrared = infraredlib.use(tessel.port['B']);
 
 var carLocked = true;
 
+function postRequest (path) {
+  console.log('requesting');
+  http.get("http://tessela.azurewebsites.net/" + path, function(res) {
+    console.log("Got response: " + res.statusCode);
+  }).on('error', function(e) {
+    console.log("Got error: " + e.message);
+  });
+}
+
 // If we get data, print it out
-infrared.on('data', function(data) {
-  var dataArray = data.toJson();
-  if (dataArray[0] === "34") {
-    if (carLocked) {
-      carLocked = false;
-      console.log("Car Unlocked!");
-    } else {
-      carLocked = true;
-      console.log("Car Locked!");
+infrared.on('ready', function(err) {
+  if (err) { console.log('IR error', err); }
+  console.log('IR receiver ready!');
+  postRequest('unlock');
+  infrared.on('data', function(data) {
+    var dataArray = data.toJSON();
+    console.log(dataArray.length);
+    if (dataArray.length === 132) {
+      if (carLocked) {
+        carLocked = false;
+        console.log("Car Unlocked!");
+        postRequest('unlock');
+      } else {
+        carLocked = true;
+        console.log("Car Locked!");
+        postRequest('lock');
+      }
     }
-  }
+  });
 });
