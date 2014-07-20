@@ -5,5 +5,8 @@
   "dependencies": {
     "ble-ble113a": "*",
     "ir-attx4": "*",
+    "express": "~4.6.1",
+    "request": "~2.37.0",
+    "http": "0.0.0"
   }
 }
